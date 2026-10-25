@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Auth Validation Helpers
+    function signedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Schema Validation Helpers
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 120
+          && data.price is number && data.price >= 0
+          && data.quantity is int && data.quantity >= 0
+          && (data.business == 'spaza' || data.business == 'liquor');
+    }
+
+    function isValidTransaction(data) {
+      return data.amount is number && data.amount > 0
+          && (data.type == 'sale' || data.type == 'expense' || data.type == 'stockArrival' || data.type == 'tillDraw')
+          && (data.business == 'spaza' || data.business == 'liquor');
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // Business Subcollection: Products (Soft-delete only via isArchived: true)
+      match /businesses/{businessId}/products/{productId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidProduct(request.resource.data);
+        allow update: if isOwner(userId) && isValidProduct(request.resource.data);
+        allow delete: if false; // Preserves historical sales records
+      }
+
+      // Business Subcollection: Transactions (Append-Only Financial Ledger)
+      match /businesses/{businessId}/transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidTransaction(request.resource.data);
+        allow update, delete: if false; // Ledger immutability
+      }
+
+      // Business Subcollection: Markdowns
+      match /businesses/{businessId}/markdowns/{markdownId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Business Subcollection: Empties & Crate Audits
+      match /businesses/{businessId}/empties/{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Default Deny for any unmapped or root-level paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "561953146299",
+    "firebase_url": "https://fnbb-ea966-default-rtdb.firebaseio.com",
+    "project_id": "fnbb-ea966",
+    "storage_bucket": "fnbb-ea966.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:561953146299:android:28d46de121021c7a8e709e",
+        "android_client_info": {
+          "package_name": "com.example.fnb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaogRbNjOnyFgKDZXp6Z8oK9nft70HEJY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
